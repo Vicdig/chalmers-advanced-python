@@ -145,5 +145,9 @@ cython_debug/
 *.gv.pdf
 
 exercises/ex05/sub/
+<<<<<<< HEAD
 examples/trees.py
 .gitignore
+=======
+exercises/*/_*
+>>>>>>> 257285ab0d1944b8fae83453b612dee8829c53cc

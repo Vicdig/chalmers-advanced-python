@@ -1,38 +1,47 @@
-# Question 1
+## Question 1: defining classes
 
 class Account:
     # an account has a number and a balance
-    def __init__(self, n, balance):
-        self._n = n
-        self._balance = balance 
-    
+    def __init__(self, number, balance):
+        self.number = number
+        self.balance = balance
+
     def get_balance(self):
         # return the actual balance
-        return self._balance
+        return self.balance
 
     def get_number(self):
-        # return the actual number
-        return self._n
+        # return the actual balance
+        return self.number
 
     def set_balance(self, b):
         # change the balance to b
-        self._balance = b
-    
+        self.balance = b
+
+    def transfer_to(self, account, amount):
+        balance1 = self.get_balance()
+        if amount > balance1:
+            print("Not enough money")
+        else:
+            self.set_balance(balance1 - amount)
+            account.set_balance(account.get_balance() + amount)
+            print("OK")
+
+
 def transfer(account1,account2,amount):
     # transfer amount from account1 to account2
     # report "OK" if successful, i.e. account1 has the required amount
     # "not enough money" otherwise
-    a1_balance = account1.get_balance()
-    a2_balance = account2.get_balance()
-    if a1_balance >= amount:
-        account1.set_balance(a1_balance - amount)
-        account2.set_balance(a2_balance + amount)
-        print("OK")
+    balance1 = account1.get_balance()
+    if amount > balance1:
+        print("Not enough money")
     else:
-        print("not enough money")
+        account1.set_balance(balance1 - amount)
+        account2.set_balance(account2.get_balance() + amount)
+        print("OK")
 
-# Question 2
 
+## Question 2 and 3: trees
 import sys
 sys.path.append("../../examples")
 from trees import *
@@ -43,24 +52,23 @@ class RecTree:
         self._subtrees = ts
 
     def parts(self):
-        return (self._root, self._subtrees)
+        return self._root, self._subtrees
     
-    # a list of edges from which a Graph can be constructed  
     def edges(self):
         (r, ts) = self.parts()
-        es = [(r, t._root) for t in ts]
+        es = [(r,t._root) for t in ts]
         for t in ts:
-            es += t.edges()
+            es = es + t.edges()
         return es
-
-    # conversion to the Tree class of Lecture 6
+    
     def to_tree(self):
+        es = self.edges()
         t = Tree(self._root)
-        for (src, trg) in self.edges():
-            t.add_edge(src, trg)
+        for (a,b) in es:
+            t.add_edge(a,b)
         return t
 
-    # conversion to the ValTree class of Lecture 6
+    # only partially shown in class
     def to_valtree(self):
         num = 1
         vt = ValueTree(num)
@@ -76,12 +84,12 @@ class RecTree:
         to_valsubtrees(num, self._subtrees)
         return vt
 
-# a helper function to construct atomic trees
-def atom(r):
-    return RecTree(r, [])
+def atom(a):
+    return RecTree(a, [])
 
 import graphviz
 
+# solution from last year, not shown in class
 def visualize_vals(graph):
     "Visualize undirected graphs with the dot method of Graphviz."
     dot = graphviz.Graph(engine='dot')
@@ -91,8 +99,8 @@ def visualize_vals(graph):
         dot.edge(str(a),str(b))
     dot.render('mygraph.gv', view=True)
 
-# Question 4 (advanced exercise, not shown in class - 
-# happy to explain the code to those interested)
+## Question 4: function composition 
+# (solution from last year, not shown in class)
 class Fun():
     def __init__(self,fun):
         self._fun = fun
@@ -102,21 +110,3 @@ class Fun():
 
     def __call__(self, *args, **kwargs):
         return self._fun(args[0])
-
-if __name__ == '__main__':
-    # for Q2-3
-    #extree = RecTree(1, [RecTree(11, [atom(111), atom(112)]), atom(12)])
-    #print(extree.parts()) 
-    #visualize(extree.to_tree())
-    syntree = RecTree('+', [atom('2'), atom('2')]) 
-    visualize_vals(syntree.to_valtree())
-
-    # for Q4
-    # f = Fun(lambda x: x+1)
-    # g = Fun(lambda x: 3*x)
-    # print(9, f(8))
-    # print(24, g(8))
-    # print(27, (g*f)(8)) #
-    # print(30, (g*f*f)(8)) #
-    # print(81, (g*g*f)(8)) #
-    # print(28, (f*g*f)(8))

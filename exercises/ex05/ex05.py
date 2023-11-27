@@ -1,54 +1,55 @@
-from trams import readTramNetwork # trams.py and all the files it needs are exepected to be in the same folder
+## Question 1
+from _trams import readTramNetwork
 import sys
 sys.path.append("../../examples")
 from htmlgen import table
 
-# Relies on a TramNetwork implementation that uses TramLine objects but represents a line's tram stops as strings, and not as TramStop objects. 
-# Adjust to your own implementation if needed
-def tramtable(tn):
-    header = ["Line n.", "Stretch", "Length", "N. stops", "Travel time", "Avg. speed"]
+def tramtable(tram_network):
+    header = ["Line", "Stretch", "Length", "Stops", "Travel time", "Average speed"]
+    lines = tram_network.all_lines()
     data = []
-    lines = tn.all_lines()
     for line in lines:
-        stops = line.get_stops()
-        start = stops[0]
-        end = stops[-1]
-
-        n = line.get_number()
-        stretch = start + "-" + end
-        length = tn.geo_distance(start, end)
-        n_stops = len(stops)
-        t_time = tn.transition_time(n, start,end)
-        avg_speed = length / t_time
-
-        row = list(map(str, [n, stretch, length, n_stops, t_time, avg_speed]))
-        data.append(row)
+        line_n = line.get_number()
+        stop_names = line.get_stops()
+        start = stop_names[0]
+        end = stop_names[-1]
+        stretch = "{} - {}".format(start, end)
+        length = round(tram_network.geo_distance(start, end),2)
+        n_stops = len(stop_names)
+        travel_time = tram_network.transition_time(line_n,start,end)
+        avg_speed = round(length / (travel_time / 60), 2)
+        data.append([line_n, stretch, str(length), str(n_stops), str(travel_time), str(avg_speed)])
     return table(header,data)
 
+## Question 2
 from urllib.request import urlopen
+from urllib.error import URLError
 from bs4 import BeautifulSoup
 from trees import Graph, visualize
 
-def hypergraph(url, depth=2):
-    g = Graph()
+def build_hypergraph(url, depth=1, graph=Graph()):
+    if depth > 0:
+        try:
+            content = urlopen("http://" + url).read()
+        except:
+            return graph
+        soup = BeautifulSoup(content, 'html.parser')
+        links = soup.find_all("a")
+        hrefs = [link.get('href') for link in links]
+        proper_hrefs = list(filter(lambda href: href and href.endswith(".html"), hrefs)) # this is a simplification
+        for href in proper_hrefs:
+            src_url = url.replace("http://", "").replace("https://", "")
+            trg_url = href.replace("http://", "").replace("https://", "")
+            graph.add_edge(src_url, trg_url)
+            print("adding edge {} -> {}".format(src_url, trg_url))
+            build_hypergraph(trg_url, depth-1, graph)
+    return graph
 
-    def hypergraph_r(url, depth):
-        if depth:
-            content = urlopen(url if url.startswith("https://") else "https://" + url).read()
-            soup = BeautifulSoup(content, 'html.parser')
-            links = filter(lambda link: link != None, [a.get('href') for a in soup.find_all('a')])
-            hlinks = list(filter(lambda link: link.endswith(".html"), links))
-            nonrel_hlinks = list(filter(lambda hlink: hlink.startswith("https://"), hlinks))
-            for hlink in nonrel_hlinks:
-                src = url.replace("https://", "")
-                trg = hlink.replace("https://", "")
-                g.add_edge(src, trg)
-                print("adding edge ", src, "->", trg)
-                hypergraph_r(trg, depth - 1)
 
-    hypergraph_r(url, depth)
-    return g
+# lambda href: href.endswith(".html") is the same as
+def does_it_end_with_html(href):
+    return href.endswith(".html")
 
 if __name__ == "__main__":
-    # print(tramtable(readTramNetwork("tramnetwork.json")))
-    visualize(hypergraph("https://docs.python.org/3/library/urllib.request.html#module-urllib.request"))
+    # print(tramtable(readTramNetwork("_tramnetwork.json")))
+    visualize(build_hypergraph("www.cse.chalmers.se/~aarne/", depth=3))
