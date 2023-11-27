@@ -145,3 +145,5 @@ cython_debug/
 *.gv.pdf
 
 exercises/ex05/sub/
+examples/trees.py
+.gitignore

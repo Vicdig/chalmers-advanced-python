@@ -85,7 +85,7 @@ import graphviz
 
 def visualize(graph):
     "Visualize undirected graphs with the dot method of Graphviz."
-    dot = graphviz.Graph(engine='dot')
+    dot = graphviz.Graph(engine='dot', format='png')
     for v in graph.vertices():
         dot.node(str(v))
     for (a,b) in graph.edges():
@@ -96,7 +96,7 @@ def visualize(graph):
 
 
 def demo():
-    T = ValueTree(1)
+    T = Graph()
     T.add_edge(1, 11)
     T.add_edge(1, 12)
     T.add_edge(11, 111)
@@ -105,10 +105,11 @@ def demo():
     T.add_edge(1, 4)
     T.add_edge(3, 4)
     T.add_edge(11, 112)
-    T.set_value(1, 'one')
-    T.set_value(11, 'eleven')
+    #T.set_value(1, 'one')
+    #T.set_value(11, 'eleven')
     print(T)
-    print(T._valuelist)
+    print(T.vertices())
+   # print(T._valuelist)
     for v in T.vertices():
         print(T[v])
     visualize(T)
